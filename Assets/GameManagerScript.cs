@@ -1,108 +1,159 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.UIElements;
+
 
 public class GameManagerScript : MonoBehaviour
 {
+    public GameObject playerPrefab;
+    GameObject[,] field;
 
-    int[] map = { 0, 0, 1, 0, 0, };
-    string debugTXT = "";
-
-    // Start is called before the first frame update
-
-    void PrintArray()
-    {
-        string debugText = "";
-        for (int i = 0; i < map.Length; i++)
-        {
-            debugText += map[i].ToString() + ",";
-        }
-        Debug.Log(debugText);
-    }
-
-    int GetPlayerIndex()
-    {
-        for(int i = 0; i < map.Length; i++)
-        {
-            if (map[i] == 1)
-            {
-                return i;
-            }
-        }
-        return -1;
-    }
 
     void Start()
     {
-        map = new int[] { 0, 2, 0, 1, 0, 2, 0, 2, 0 ,0,0};
-        PrintArray();
+        //mapの生成
+        int[,] map ={
+        { 1, 0, 0, 0, 0 },
+        { 0, 0, 0, 0, 0 },
+        { 0, 0, 0, 0, 0 },
+    };
+        //フィールドサイズ決定
+        field = new GameObject
+            [
+            map.GetLength(0),
+            map.GetLength(1),
+            ];
 
-        for (int i = 0; i < map.Length; i++) 
+        //マップに応じて描画
+        for (int y = 0; y < map.GetLength(0); y++)
         {
-            debugTXT += map[i].ToString() + ",";
+            for (int x = 0; x < map.GetLength(1); x++)
+            {
+                field[y, x] = Instantiate(
+                    playerPrefab,
+                    new Vector3(x, map.GetLength(0) - 1 - y, 0),
+                    Quaternion.identity
+                    );
+            }
         }
-            Debug.Log(debugTXT);
 
-       
+        string debugTXT = "";
+
+        for (int y = 0; y < map.GetLength(0); y++)
+        {
+            for (int x = 0; x < map.GetLength(1); x++)
+            {
+                debugTXT += map[y, x].ToString() + ",";
+            }
+            debugTXT += "\n";
+        }
+        Debug.Log(debugTXT);
+
+        //    map = new int[] { 0, 2, 0, 1, 0, 2, 0, 2, 0 ,0,0};
+        //    PrintArray();
+
+        //    for (int i = 0; i < map.Length; i++) 
+        //    {
+        //        debugTXT += map[i].ToString() + ",";
+        //    }
+        //        Debug.Log(debugTXT);
     }
 
-    bool MoveNumber(int number, int moveFrom, int moveTo)
+
+
+    // Start is called before the first frame update
+
+    //void PrintArray()
+    //{
+    //    string debugText = "";
+    //    for (int i = 0; i < map.Length; i++)
+    //    {
+    //        debugText += map[i].ToString() + ",";
+    //    }
+    //    Debug.Log(debugText);
+    //}
+
+    private Vector2Int GetPlayerIndex()
     {
-        if (moveTo < 0 || moveTo >= map.Length)
+        for (int y = 0; y < field.GetLength(0); y++)
         {
-            return false;
+            for (int x = 0; x < field.GetLength(1); x++)
+            {
+                if (field[y, x].tag == "Player")
+                {
+                    return new Vector2Int(x, y);
+                }
+            }
+            return new Vector2Int(-1, -1);
         }
-        if (map[moveTo] == 2)
+
+
+
+        bool MoveNumber(string objName, Vector2Int moveFrom, Vector2Int moveTo)
         {
-            int velocity = moveTo - moveFrom;
-            bool success = MoveNumber(2, moveTo, moveTo + velocity);
-            if (success == false)
+            if (moveTo.x < 0 || moveTo.x >= field.GetLength(1))
             {
                 return false;
             }
-        }
-        map[moveTo] = number;
-        map[moveFrom] = 0;
-        return true;
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-
-        if (Input.GetKeyDown(KeyCode.RightArrow))
-        {
-            int playerIndex = GetPlayerIndex();
-
-            MoveNumber(1,playerIndex,playerIndex+1);
-            PrintArray();
-
-            string debugText = "";
-            for(int i = 0; i < map.Length; i++)
+            if (moveTo.y < 0 || moveTo.y >= field.GetLength(0))
             {
-                debugText += map[i].ToString() + ",";
+                return false;
             }
-            Debug.Log(debugText);
+            //if (map[moveTo] == 2)
+            //{
+            //    int velocity = moveTo - moveFrom;
+            //    bool success = MoveNumber(2, moveTo, moveTo + velocity);
+            //    if (success == false)
+            //    {
+            //        return false;
+            //    }
+            //}
+            field[moveTo.y, moveTo.x] = field[moveFrom.y, moveFrom.x];
+            field[moveTo.x, moveTo.y].transform.position = new Vector3(moveTo.x, field.GetLength(0) - moveTo.y, 0);
+            field[moveFrom.y, moveFrom.x] = null;
+            return true;
         }
 
+        //// Update is called once per frame
+        //void Update()
+        //{
 
-        if (Input.GetKeyDown(KeyCode.LeftArrow))
-        {
-            int playerIndex = GetPlayerIndex();
+        //if (Input.GetKeyDown(KeyCode.RightArrow))
+        //{
+        //int playerIndex = GetPlayerIndex();
 
-            MoveNumber(1, playerIndex, playerIndex - 1);
-            PrintArray();
+        //MoveNumber(1,playerIndex,playerIndex+1);
+        //PrintArray();
 
-            string debugText = "";
-            for (int i = 0; i < map.Length; i++)
-            {
-                debugText += map[i].ToString() + ",";
-            }
-            Debug.Log(debugText);
-        }
+        //string debugText = "";
+        //for(int i = 0; i < map.Length; i++)
+        //{
+        //    debugText += map[i].ToString() + ",";
+        //}
+        //Debug.Log(debugText);
+        //}
+
+
+        //if (Input.GetKeyDown(KeyCode.LeftArrow))
+        //{
+        //    int playerIndex = GetPlayerIndex();
+
+        //    MoveNumber(1, playerIndex, playerIndex - 1);
+        //    PrintArray();
+
+        //    string debugText = "";
+        //    for (int i = 0; i < map.Length; i++)
+        //    {
+        //        debugText += map[i].ToString() + ",";
+        //    }
+        //    Debug.Log(debugText);
+        //}
+
+        //}
+
+
 
     }
-
- 
-   
-}
