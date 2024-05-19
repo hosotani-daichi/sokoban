@@ -53,6 +53,7 @@ public class GameManagerScript : MonoBehaviour
 
             }
         }
+       
 
         string debugTXT = "";
 
@@ -90,7 +91,7 @@ public class GameManagerScript : MonoBehaviour
     //    Debug.Log(debugText);
     //}
 
-    private Vector2Int GetPlayerIndex()
+    Vector2Int GetPlayerIndex()
     {
         for (int y = 0; y < field.GetLength(0); y++)
         {
@@ -146,39 +147,67 @@ public class GameManagerScript : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.RightArrow))
         {
-            //int playerIndex = GetPlayerIndex();
 
-            //MoveNumber(1,playerIndex,playerIndex+1);
-            //PrintArray();
-
-            //string debugText = "";
-            //for(int i = 0; i < map.Length; i++)
-            //{
-            //    debugText += map[i].ToString() + ",";
-            //}
-            //Debug.Log(debugText);
-            //}
-
-
-            //if (Input.GetKeyDown(KeyCode.LeftArrow))
-            //{
             Vector2Int playerIndex = GetPlayerIndex();
 
             MoveNumber(playerIndex, playerIndex + new Vector2Int(1, 0));
-            //    PrintArray();
-
-            //    string debugText = "";
-            //    for (int i = 0; i < map.Length; i++)
-            //    {
-            //        debugText += map[i].ToString() + ",";
-            //    }
-            //    Debug.Log(debugText);
-            //}
-
-            //}
-
-
-
+            //PrintArray();
         }
+
+        if (Input.GetKeyDown(KeyCode.LeftArrow))
+        {
+
+            Vector2Int playerIndex = GetPlayerIndex();
+
+            MoveNumber(playerIndex, playerIndex + new Vector2Int(-1, 0));
+            //PrintArray();
+        }
+
+        if (Input.GetKeyDown(KeyCode.UpArrow))
+        {
+
+            Vector2Int playerIndex = GetPlayerIndex();
+
+            MoveNumber(playerIndex, playerIndex + new Vector2Int(0, -1));
+            //PrintArray();
+        }
+
+        if (Input.GetKeyDown(KeyCode.DownArrow))
+        {
+
+            Vector2Int playerIndex = GetPlayerIndex();
+
+            MoveNumber(playerIndex, playerIndex + new Vector2Int(0,1));
+            //PrintArray();
+        }
+
+
+
+        //string debugText = "";
+        //for(int i = 0; i < map.Length; i++)
+        //{
+        //    debugText += map[i].ToString() + ",";
+        //}
+        //Debug.Log(debugText);
+        //}
+
+
+        //if (Input.GetKeyDown(KeyCode.LeftArrow))
+        //{
+
+        //    PrintArray();
+
+        //    string debugText = "";
+        //    for (int i = 0; i < map.Length; i++)
+        //    {
+        //        debugText += map[i].ToString() + ",";
+        //    }
+        //    Debug.Log(debugText);
+        //}
+
+        //}
+
+
+
     }
-}
+    }
