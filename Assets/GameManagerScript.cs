@@ -11,15 +11,26 @@ public class GameManagerScript : MonoBehaviour
 {
     public GameObject playerPrefab;
     public GameObject boxPrefab;
+    public GameObject goalPrefab;
+
+    //追記
+    public GameObject clearText;
+
+    int[,] map;
     GameObject[,] field;
 
 
     void Start()
     {
+
+        Screen.SetResolution(1280, 270, false);
+
         //mapの生成
-        int[,] map ={
-        { 1, 0, 0, 0, 0 },
-        { 0, 0, 0, 0, 0 },
+        map = new int[,]{
+        { 0, 0, 2, 0, 0 },
+        { 0, 3, 1, 3, 0 },
+        { 0, 0, 2, 0, 0 },
+        { 0, 2, 3, 2, 0 },
         { 0, 0, 0, 0, 0 },
     };
         //フィールドサイズ決定
@@ -38,7 +49,7 @@ public class GameManagerScript : MonoBehaviour
                 {
                     field[y, x] = Instantiate(
                   playerPrefab,
-                  new Vector3(x, map.GetLength(0)- y, 0),
+                  new Vector3(x, map.GetLength(0) - y, 0),
                   Quaternion.identity
                   );
                 }
@@ -53,7 +64,7 @@ public class GameManagerScript : MonoBehaviour
 
             }
         }
-       
+
 
         string debugTXT = "";
 
@@ -67,29 +78,7 @@ public class GameManagerScript : MonoBehaviour
         }
         Debug.Log(debugTXT);
 
-        //    map = new int[] { 0, 2, 0, 1, 0, 2, 0, 2, 0 ,0,0};
-        //    PrintArray();
-
-        //    for (int i = 0; i < map.Length; i++) 
-        //    {
-        //        debugTXT += map[i].ToString() + ",";
-        //    }
-        //        Debug.Log(debugTXT);
     }
-
-
-
-    // Start is called before the first frame update
-
-    //void PrintArray()
-    //{
-    //    string debugText = "";
-    //    for (int i = 0; i < map.Length; i++)
-    //    {
-    //        debugText += map[i].ToString() + ",";
-    //    }
-    //    Debug.Log(debugText);
-    //}
 
     Vector2Int GetPlayerIndex()
     {
@@ -105,13 +94,46 @@ public class GameManagerScript : MonoBehaviour
         return new Vector2Int(-1, -1);
     }
 
+    bool IsCleard()
+    {
+        //Vector2Int型の可変長配列の作成
+        List<Vector2Int> goals = new List<Vector2Int>();
+
+        for(int y = 0; y < map.GetLength(0); y++)
+        {
+            for(int x = 0;x < map.GetLength(1); x++)
+            {
+                //格納場所か否かを判断
+                if (map[y, x] == 3)
+                {
+                    //格納場所にインデックスを控えておく
+                    goals.Add(new Vector2Int(x, y));
+                }
+            }
+        }
+
+        for(int i=0;i<goals.Count;i++) 
+        {
+            GameObject f = field[goals[i].y, goals[i].x];
+            if (f == null || f.tag != "Box")
+            {
+                //1つでも箱がなかったら条件未達成
+                return false;
+            }
+        }
+        return true;
+    }
+
+
     bool MoveNumber(Vector2Int moveFrom, Vector2Int moveTo)
     {
-        if (moveTo.x < 0 || moveTo.x >= field.GetLength(0))
+
+
+        if (moveTo.x < 0 || moveTo.x >= field.GetLength(1))
         {
             return false;
         }
-        if (moveTo.y < 0 || moveTo.y >= field.GetLength(1))
+        if (moveTo.y < 0 || moveTo.y >= field.GetLength(0))
         {
             return false;
         }
@@ -119,23 +141,16 @@ public class GameManagerScript : MonoBehaviour
         if (field[moveTo.y, moveTo.x] != null && field[moveTo.y, moveTo.x].tag == "Box")
         {
             Vector2Int velocity = moveTo - moveFrom;
-            bool success = MoveNumber(moveTo, moveFrom + velocity);
+            bool success = MoveNumber(moveTo, moveTo + velocity);
             if (!success)
             {
                 return false;
             }
         }
-        //if (map[moveTo] == 2)
-        //{
-        //    int velocity = moveTo - moveFrom;
-        //    bool success = MoveNumber(2, moveTo, moveTo + velocity);
-        //    if (success == false)
-        //    {
-        //        return false;
-        //    }
-        //}
+       
+        Vector3 moveToPosition = new Vector3(moveTo.x, map.GetLength(0) - moveTo.y, 0);
+        field[moveFrom.y, moveFrom.x].GetComponent<Move>().MoveTo(moveToPosition);
         field[moveTo.y, moveTo.x] = field[moveFrom.y, moveFrom.x];
-        field[moveTo.x, moveTo.y].transform.position = new Vector3(moveTo.x, field.GetLength(0) - moveTo.y, 0);
         field[moveFrom.y, moveFrom.x] = null;
         return true;
     }
@@ -144,7 +159,6 @@ public class GameManagerScript : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-
         if (Input.GetKeyDown(KeyCode.RightArrow))
         {
 
@@ -152,6 +166,14 @@ public class GameManagerScript : MonoBehaviour
 
             MoveNumber(playerIndex, playerIndex + new Vector2Int(1, 0));
             //PrintArray();
+
+            //もしクリアしていたら
+            if (IsCleard())
+            {
+               //ゲームオブジェクトのSetActiveのメソッドを使い有効か
+               clearText.SetActive(true);
+            }
+
         }
 
         if (Input.GetKeyDown(KeyCode.LeftArrow))
@@ -161,6 +183,14 @@ public class GameManagerScript : MonoBehaviour
 
             MoveNumber(playerIndex, playerIndex + new Vector2Int(-1, 0));
             //PrintArray();
+
+            //もしクリアしていたら
+            if (IsCleard())
+            {
+                //ゲームオブジェクトのSetActiveのメソッドを使い有効か
+                clearText.SetActive(true);
+            }
+
         }
 
         if (Input.GetKeyDown(KeyCode.UpArrow))
@@ -170,6 +200,14 @@ public class GameManagerScript : MonoBehaviour
 
             MoveNumber(playerIndex, playerIndex + new Vector2Int(0, -1));
             //PrintArray();
+
+            //もしクリアしていたら
+            if (IsCleard())
+            {
+                //ゲームオブジェクトのSetActiveのメソッドを使い有効か
+                clearText.SetActive(true);
+            }
+
         }
 
         if (Input.GetKeyDown(KeyCode.DownArrow))
@@ -177,8 +215,16 @@ public class GameManagerScript : MonoBehaviour
 
             Vector2Int playerIndex = GetPlayerIndex();
 
-            MoveNumber(playerIndex, playerIndex + new Vector2Int(0,1));
+            MoveNumber(playerIndex, playerIndex + new Vector2Int(0, 1));
             //PrintArray();
+
+            //もしクリアしていたら
+            if (IsCleard())
+            {
+                //ゲームオブジェクトのSetActiveのメソッドを使い有効か
+                clearText.SetActive(true);
+            }
+
         }
 
 
@@ -210,4 +256,4 @@ public class GameManagerScript : MonoBehaviour
 
 
     }
-    }
+}
